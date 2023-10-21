@@ -1,0 +1,185 @@
+Performing C++ SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
+Change Dir: /root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_7c8c8/fast && /usr/bin/make -f CMakeFiles/cmTC_7c8c8.dir/build.make CMakeFiles/cmTC_7c8c8.dir/build
+make[1]: Entering directory '/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_7c8c8.dir/src.cxx.o
+/usr/bin/c++    -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_7c8c8.dir/src.cxx.o -c /root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_7c8c8
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7c8c8.dir/link.txt --verbose=1
+/usr/bin/c++   -DCMAKE_HAVE_LIBC_PTHREAD    CMakeFiles/cmTC_7c8c8.dir/src.cxx.o  -o cmTC_7c8c8 
+/usr/bin/ld: CMakeFiles/cmTC_7c8c8.dir/src.cxx.o: in function `main':
+src.cxx:(.text+0x46): undefined reference to `pthread_create'
+/usr/bin/ld: src.cxx:(.text+0x52): undefined reference to `pthread_detach'
+/usr/bin/ld: src.cxx:(.text+0x63): undefined reference to `pthread_join'
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_7c8c8.dir/build.make:87: cmTC_7c8c8] Error 1
+make[1]: Leaving directory '/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_7c8c8/fast] Error 2
+
+
+Source file was:
+#include <pthread.h>
+
+void* test_func(void* data)
+{
+  return data;
+}
+
+int main(void)
+{
+  pthread_t thread;
+  pthread_create(&thread, NULL, test_func, NULL);
+  pthread_detach(thread);
+  pthread_join(thread, NULL);
+  pthread_atfork(NULL, NULL, NULL);
+  pthread_exit(NULL);
+
+  return 0;
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_a5d20/fast && /usr/bin/make -f CMakeFiles/cmTC_a5d20.dir/build.make CMakeFiles/cmTC_a5d20.dir/build
+make[1]: Entering directory '/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_a5d20.dir/CheckFunctionExists.cxx.o
+/usr/bin/c++    -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_a5d20.dir/CheckFunctionExists.cxx.o -c /root/project/XENGPUMiner/build/CMakeFiles/CheckLibraryExists/CheckFunctionExists.cxx
+Linking CXX executable cmTC_a5d20
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a5d20.dir/link.txt --verbose=1
+/usr/bin/c++   -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_a5d20.dir/CheckFunctionExists.cxx.o  -o cmTC_a5d20  -lpthreads 
+/usr/bin/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_a5d20.dir/build.make:87: cmTC_a5d20] Error 1
+make[1]: Leaving directory '/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_a5d20/fast] Error 2
+
+
+
+Performing C SOURCE FILE Test FEATURE_ssse3_NOFLAG failed with the following output:
+Change Dir: /root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_d71e4/fast && /usr/bin/make -f CMakeFiles/cmTC_d71e4.dir/build.make CMakeFiles/cmTC_d71e4.dir/build
+make[1]: Entering directory '/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_d71e4.dir/src.c.o
+/usr/bin/cc   -DFEATURE_ssse3_NOFLAG   -o CMakeFiles/cmTC_d71e4.dir/src.c.o   -c /root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp/src.c
+In file included from /usr/lib/gcc/x86_64-linux-gnu/9/include/immintrin.h:35,
+                 from /usr/lib/gcc/x86_64-linux-gnu/9/include/x86intrin.h:32,
+                 from /root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp/src.c:1:
+/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp/src.c: In function ‘function_ssse3’:
+/usr/lib/gcc/x86_64-linux-gnu/9/include/tmmintrin.h:136:1: error: inlining failed in call to always_inline ‘_mm_shuffle_epi8’: target specific option mismatch
+  136 | _mm_shuffle_epi8 (__m128i __X, __m128i __Y)
+      | ^~~~~~~~~~~~~~~~
+/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp/src.c:5:12: note: called from here
+    5 |     *dst = _mm_shuffle_epi8(*a, *b);
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~
+make[1]: *** [CMakeFiles/cmTC_d71e4.dir/build.make:66: CMakeFiles/cmTC_d71e4.dir/src.c.o] Error 1
+make[1]: Leaving directory '/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_d71e4/fast] Error 2
+
+
+Source file was:
+#include <x86intrin.h>
+
+void function_ssse3(__m128i *dst, const __m128i *a, const __m128i *b)
+{
+    *dst = _mm_shuffle_epi8(*a, *b);
+}
+
+int main(void) { return 0; }
+
+Performing C SOURCE FILE Test FEATURE_xop_NOFLAG failed with the following output:
+Change Dir: /root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_e5063/fast && /usr/bin/make -f CMakeFiles/cmTC_e5063.dir/build.make CMakeFiles/cmTC_e5063.dir/build
+make[1]: Entering directory '/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_e5063.dir/src.c.o
+/usr/bin/cc   -DFEATURE_xop_NOFLAG   -o CMakeFiles/cmTC_e5063.dir/src.c.o   -c /root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp/src.c
+In file included from /usr/lib/gcc/x86_64-linux-gnu/9/include/x86intrin.h:38,
+                 from /root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp/src.c:1:
+/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp/src.c: In function ‘function_xop’:
+/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp/src.c:5:12: error: ‘__builtin_ia32_vprotqi’ needs isa option -mxop
+    5 |     *dst = _mm_roti_epi64(*a, b);
+      |            ^~~~~~~~~~~~~~
+make[1]: *** [CMakeFiles/cmTC_e5063.dir/build.make:66: CMakeFiles/cmTC_e5063.dir/src.c.o] Error 1
+make[1]: Leaving directory '/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_e5063/fast] Error 2
+
+
+Source file was:
+#include <x86intrin.h>
+
+void function_xop(__m128i *dst, const __m128i *a, int b)
+{
+    *dst = _mm_roti_epi64(*a, b);
+}
+
+int main(void) { return 0; }
+
+Performing C SOURCE FILE Test FEATURE_avx2_NOFLAG failed with the following output:
+Change Dir: /root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_dd082/fast && /usr/bin/make -f CMakeFiles/cmTC_dd082.dir/build.make CMakeFiles/cmTC_dd082.dir/build
+make[1]: Entering directory '/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_dd082.dir/src.c.o
+/usr/bin/cc   -DFEATURE_avx2_NOFLAG   -o CMakeFiles/cmTC_dd082.dir/src.c.o   -c /root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp/src.c
+/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp/src.c: In function ‘function_avx2’:
+/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp/src.c:5:10: warning: AVX vector return without AVX enabled changes the ABI [-Wpsabi]
+    5 |     *dst = _mm256_xor_si256(*a, *b);
+      |     ~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /usr/lib/gcc/x86_64-linux-gnu/9/include/immintrin.h:53,
+                 from /usr/lib/gcc/x86_64-linux-gnu/9/include/x86intrin.h:32,
+                 from /root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp/src.c:1:
+/usr/lib/gcc/x86_64-linux-gnu/9/include/avx2intrin.h:913:1: error: inlining failed in call to always_inline ‘_mm256_xor_si256’: target specific option mismatch
+  913 | _mm256_xor_si256 (__m256i __A, __m256i __B)
+      | ^~~~~~~~~~~~~~~~
+/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp/src.c:5:12: note: called from here
+    5 |     *dst = _mm256_xor_si256(*a, *b);
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~
+make[1]: *** [CMakeFiles/cmTC_dd082.dir/build.make:66: CMakeFiles/cmTC_dd082.dir/src.c.o] Error 1
+make[1]: Leaving directory '/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_dd082/fast] Error 2
+
+
+Source file was:
+#include <x86intrin.h>
+
+void function_avx2(__m256i *dst, const __m256i *a, const __m256i *b)
+{
+    *dst = _mm256_xor_si256(*a, *b);
+}
+
+int main(void) { return 0; }
+
+Performing C SOURCE FILE Test FEATURE_avx512f_NOFLAG failed with the following output:
+Change Dir: /root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_a8a8d/fast && /usr/bin/make -f CMakeFiles/cmTC_a8a8d.dir/build.make CMakeFiles/cmTC_a8a8d.dir/build
+make[1]: Entering directory '/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_a8a8d.dir/src.c.o
+/usr/bin/cc   -DFEATURE_avx512f_NOFLAG   -o CMakeFiles/cmTC_a8a8d.dir/src.c.o   -c /root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp/src.c
+In file included from /usr/lib/gcc/x86_64-linux-gnu/9/include/immintrin.h:55,
+                 from /usr/lib/gcc/x86_64-linux-gnu/9/include/x86intrin.h:32,
+                 from /root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp/src.c:1:
+/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp/src.c: In function ‘function_avx512f’:
+/usr/lib/gcc/x86_64-linux-gnu/9/include/avx512fintrin.h:204:1: error: inlining failed in call to always_inline ‘_mm512_undefined_epi32’: target specific option mismatch
+  204 | _mm512_undefined_epi32 (void)
+      | ^~~~~~~~~~~~~~~~~~~~~~
+/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp/src.c:5:12: note: called from here
+    5 |     *dst = _mm512_ror_epi64(*a, 57);
+      |            ^~~~~~~~~~~~~~~~
+make[1]: *** [CMakeFiles/cmTC_a8a8d.dir/build.make:66: CMakeFiles/cmTC_a8a8d.dir/src.c.o] Error 1
+make[1]: Leaving directory '/root/project/XENGPUMiner/build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_a8a8d/fast] Error 2
+
+
+Source file was:
+#include <x86intrin.h>
+
+void function_avx512f(__m512i *dst, const __m512i *a)
+{
+    *dst = _mm512_ror_epi64(*a, 57);
+}
+
+int main(void) { return 0; }
+
