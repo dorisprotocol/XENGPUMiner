@@ -107,7 +107,21 @@ static void saveToFile2(const std::string& pw) {
     outFile << pw;
     outFile.close();
 }
-
+std::string hex_to_bytes2(const std::string& hex) {
+    std::string bytes;
+    for (std::size_t i = 0; i < hex.length(); i += 2) {
+        std::string byteString = hex.substr(i, 2);
+        char byte = (char) std::stoi(byteString, nullptr, 16);
+        bytes.push_back(byte);
+    }
+    return bytes;
+}
+std::string generateText2(int mcost, int tcost, int p, const std::string& salt, const std::string& hashed, const std::string& hashkey) {
+    std::ostringstream oss;
+    std::string saltBytes = hex_to_bytes2(salt);
+    oss << "{'hash_to_verify':'$argon2id$v=19$m=" << mcost << ",t="<< tcost <<",p="<< p <<"$" << base64_encode2((const unsigned char*)saltBytes.c_str(), saltBytes.length()) << "$" << hashed << "', 'key': '" << hashkey << "'}";
+    return oss.str();
+}
 class ParallelRunner
 {
 private:
@@ -154,9 +168,9 @@ private:
             ctx.pwd = static_cast<std::uint8_t *>(const_cast<void *>(pw));
             ctx.pwdlen = pwSize;
 
-            const char* saltText = "XEN10082022XEN";
+            const char* saltText = director.getSalt().c_str();
             ctx.salt = reinterpret_cast<uint8_t*>(const_cast<char*>(saltText));
-            ctx.saltlen = SALT_LENGTH;
+            ctx.saltlen = director.getSalt().length();
             ctx.secret = NULL;
             ctx.secretlen = 0;
             ctx.ad = NULL;
@@ -185,19 +199,22 @@ private:
 
             std::string decodedString = base64_encode2(out.get(), HASH_LENGTH);
             std::string pwString((static_cast<const char*>(pw)), pwSize);
-            // std::cout << "Hash " << pwString << " (Base64): " << decodedString << std::endl;
+            // std::cout << "Hash " << unit.getPW(i) << " (Base64): " << decodedString << std::endl;
+            bool found = false;
             if (decodedString.find("XEN11") != std::string::npos) {
-                std::cout << "XEN11 found Hash " << decodedString << std::endl;
-                saveToFile2(pwString);
+                found = true;
             } 
             if(std::regex_search(decodedString, pattern) && is_within_five_minutes_of_hour2()){
-                std::cout << "XUNI found Hash " << decodedString << std::endl;
-                saveToFile2(pwString);
+                found = true;
             }
-            else {
+
+            if(found){
+                std::cout<< generateText2(director.getMemoryCost(), director.getTimeCost(), director.getLanes(), director.getSalt(), decodedString, pwString)<<std::endl;
+                saveToFile2(pwString);
             }
         }
     }
+
 
 public:
     ParallelRunner(const BenchmarkDirector &director, PasswordGenerator &pwGen)

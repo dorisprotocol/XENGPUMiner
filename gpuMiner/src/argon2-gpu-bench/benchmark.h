@@ -26,6 +26,7 @@ private:
     std::size_t batchSize, samples;
     bool bySegment, precomputeRefs;
     std::string outputMode, outputType;
+    std::string salt;
     bool beVerbose;
     bool benchmark = false;
     std::string benchmarkFileName;
@@ -41,15 +42,16 @@ public:
     bool isBySegment() const { return bySegment; }
     bool isPrecomputeRefs() const { return precomputeRefs; }
     bool isVerbose() const { return beVerbose; }
+    std::string getSalt() const {return salt;}
 
     BenchmarkDirector(const std::string &progname,
-                      argon2::Type type, argon2::Version version,
+                      argon2::Type type, argon2::Version version, std::string salt,
                       std::size_t t_cost, std::size_t m_cost, std::size_t lanes,
                       std::size_t batchSize, bool bySegment,
                       bool precomputeRefs, std::size_t samples,
                       const std::string &outputMode,
                       const std::string &outputType, bool benchmark = false)
-        : progname(progname), type(type), version(version),
+        : progname(progname), type(type), version(version), salt(salt),
           t_cost(t_cost), m_cost(m_cost), lanes(lanes), batchSize(batchSize),
           samples(samples), bySegment(bySegment), precomputeRefs(precomputeRefs),
           outputMode(outputMode), outputType(outputType),

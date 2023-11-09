@@ -1,2 +1,0 @@
-/usr/bin/ar qc libargon2-sse2.a  CMakeFiles/argon2-sse2.dir/arch/x86_64/lib/argon2-sse2.c.o
-/usr/bin/ranlib libargon2-sse2.a

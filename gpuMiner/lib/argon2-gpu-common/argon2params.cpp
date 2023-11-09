@@ -8,7 +8,9 @@
 #ifdef DEBUG
 #include <cstdio>
 #endif
-
+#include <string>
+#include <iostream>
+#include <vector>
 namespace argon2 {
 
 static void store32(void *dst, std::uint32_t v)
@@ -22,7 +24,7 @@ static void store32(void *dst, std::uint32_t v)
 
 Argon2Params::Argon2Params(
         std::size_t outLen,
-        const void *salt, std::size_t saltLen,
+        std::string salt, std::size_t saltLen,
         const void *secret, std::size_t secretLen,
         const void *ad, std::size_t adLen,
         std::size_t t_cost, std::size_t m_cost, std::size_t lanes)
@@ -76,6 +78,15 @@ void Argon2Params::digestLong(void *out, std::size_t outLen,
     }
 }
 
+std::string hex_to_bytes(const std::string& hex) {
+    std::string bytes;
+    for (std::size_t i = 0; i < hex.length(); i += 2) {
+        std::string byteString = hex.substr(i, 2);
+        char byte = (char) std::stoi(byteString, nullptr, 16);
+        bytes.push_back(byte);
+    }
+    return bytes;
+}
 void Argon2Params::initialHash(
         void *out, const void *pwd, std::size_t pwdLen,
         Type type, Version version) const
@@ -93,8 +104,9 @@ void Argon2Params::initialHash(
     store32(value, type);       blake.update(value, sizeof(value));
     store32(value, pwdLen);     blake.update(value, sizeof(value));
     blake.update(pwd, pwdLen);
-    store32(value, saltLen);    blake.update(value, sizeof(value));
-    blake.update(salt, saltLen);
+    std::string hexSalt = hex_to_bytes(salt);
+    store32(value, hexSalt.length());    blake.update(value, sizeof(value));
+    blake.update(hexSalt.c_str(), hexSalt.length());
     store32(value, secretLen);  blake.update(value, sizeof(value));
     blake.update(secret, secretLen);
     store32(value, adLen);      blake.update(value, sizeof(value));

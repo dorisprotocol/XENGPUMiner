@@ -129,8 +129,39 @@ void signalHandler(int signum) {
         std::cout << "change difficulty to " << difficulty << ", waiting process end" << std::endl;
     }
 }
+#include <cstdlib>
+#include <regex>
 #include <iomanip>
+std::string getAccountValue(const std::string& configFilePath) {
+    std::ifstream configFile(configFilePath);
+    if (!configFile.is_open()) {
+        std::cerr << "Error: Failed to open config file." << std::endl;
+        std::abort();
+    }
 
+    std::string line;
+    std::regex reg(R"(account\s*=\s*(.+))");  // Regular expression to match the account line and capture the value
+
+    while (std::getline(configFile, line)) {  // Read the file line by line
+        std::smatch match;
+        if (std::regex_search(line, match, reg)) {
+            std::string matchString = std::string(match[1]);
+            if (matchString.find(".") != std::string::npos) {
+                // Found a dot, output error message and abort program
+                std::cerr << "Error: Account contains a dot, not supported yet" << std::endl;
+                std::abort();
+            }
+            if (matchString.substr(0, 2) == "0x" || matchString.substr(0, 2) == "0X") {
+                // No dot, but found prefix "0x", so return substring without "0x"
+                return matchString.substr(2);
+            }
+            return match[1].str();  // Return the account value once found
+        }
+    }
+
+    std::cerr << "Error: Account value not found in config file." << std::endl;
+    std::abort();
+}
 int main(int, const char * const *argv)
 {
     difficulty = 1727;
@@ -149,7 +180,7 @@ int main(int, const char * const *argv)
         return 0;
     }
     if(args.listDevices){
-        BenchmarkDirector director(argv[0], argon2::ARGON2_ID, argon2::ARGON2_VERSION_13,
+        BenchmarkDirector director(argv[0], argon2::ARGON2_ID, argon2::ARGON2_VERSION_13, "24691E54aFafe2416a8252097C9Ca67557271475",
                 1, 120, 1, 1,
                 false, args.precomputeRefs, 20000000,
                 args.outputMode, args.outputType);
@@ -241,7 +272,7 @@ int main(int, const char * const *argv)
             for(int bs = initbs; bs <= batchSize; bs*=2){
                 if(!running)break;
                 int rate = 0;
-                BenchmarkDirector director(argv[0], argon2::ARGON2_ID, argon2::ARGON2_VERSION_13,
+                BenchmarkDirector director(argv[0], argon2::ARGON2_ID, argon2::ARGON2_VERSION_13, "24691E54aFafe2416a8252097C9Ca67557271475",
                     1, mcost, 1, batchSize,
                     false, args.precomputeRefs, samples,
                     args.outputMode, args.outputType, true);
@@ -276,6 +307,8 @@ int main(int, const char * const *argv)
     // start a thread to read difficulty from file
     std::thread t(read_difficulty_periodically, "difficulty.txt"); 
     t.detach(); // detach thread from main thread, so it can run independently
+    std::string salt = getAccountValue("config.conf");
+    std::cout<< "Using "<<salt<<" as salt"<<std::endl;
     for(int i = 0; i < std::numeric_limits<size_t>::max(); i++){
         if(!running)break;
 
@@ -322,7 +355,7 @@ int main(int, const char * const *argv)
             printf("using batchsize:%d\n", batchSize);
         }
 
-        BenchmarkDirector director(argv[0], argon2::ARGON2_ID, argon2::ARGON2_VERSION_13,
+        BenchmarkDirector director(argv[0], argon2::ARGON2_ID, argon2::ARGON2_VERSION_13, salt,
                 1, mcost, 1, batchSize,
                 false, args.precomputeRefs, std::numeric_limits<size_t>::max(),
                 args.outputMode, args.outputType);

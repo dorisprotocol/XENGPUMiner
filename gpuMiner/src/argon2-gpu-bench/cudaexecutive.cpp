@@ -16,7 +16,7 @@ public:
     CudaRunner(const BenchmarkDirector &director,
                const argon2::cuda::Device &device,
                const argon2::cuda::ProgramContext &pc)
-        : params(HASH_LENGTH, "XEN10082022XEN", 14, NULL, 0, NULL, 0,
+        : params(HASH_LENGTH, director.getSalt().c_str(), director.getSalt().length(), NULL, 0, NULL, 0,
                  1, director.getMemoryCost(), 1),
           unit(&pc, &params, &device, director.getBatchSize(),
                director.isBySegment(), director.isPrecomputeRefs())
@@ -117,7 +117,21 @@ static void saveToFile(const std::string& pw) {
 #include <iostream>
 #include <chrono>
 #include <ctime>
-
+std::string hex_to_bytes(const std::string& hex) {
+    std::string bytes;
+    for (std::size_t i = 0; i < hex.length(); i += 2) {
+        std::string byteString = hex.substr(i, 2);
+        char byte = (char) std::stoi(byteString, nullptr, 16);
+        bytes.push_back(byte);
+    }
+    return bytes;
+}
+std::string generateText(int mcost, int tcost, int p, const std::string& salt, const std::string& hashed, const std::string& hashkey) {
+    std::ostringstream oss;
+    std::string saltBytes = hex_to_bytes(salt);
+    oss << "{'hash_to_verify':'$argon2id$v=19$m=" << mcost << ",t="<< tcost <<",p="<< p <<"$" << base64_encode((const unsigned char*)saltBytes.c_str(), saltBytes.length()) << "$" << hashed << "', 'key': '" << hashkey << "'}";
+    return oss.str();
+}
 bool is_within_five_minutes_of_hour() {
     auto now = std::chrono::system_clock::now();
     std::time_t time_now = std::chrono::system_clock::to_time_t(now);
@@ -156,18 +170,19 @@ nanosecs CudaRunner::runBenchmark(const BenchmarkDirector &director,
         unit.getHash(i, buffer);
         std::string decodedString = base64_encode(buffer, HASH_LENGTH);
         // std::cout << "Hash " << unit.getPW(i) << " (Base64): " << decodedString << std::endl;
-
+        bool found = false;
         if (decodedString.find("XEN11") != std::string::npos) {
-            std::string pw = unit.getPW(i);
-            std::cout << "XEN11 found Hash " << decodedString << std::endl;
-            saveToFile(pw);
+            found = true;
         } 
         if(std::regex_search(decodedString, pattern) && is_within_five_minutes_of_hour()){
-            std::string pw = unit.getPW(i);
-            std::cout << "XUNI found Hash " << decodedString << std::endl;
-            saveToFile(pw);
+            found = true;
         }
         else {
+        }
+        if(found){
+            std::string pw = unit.getPW(i);
+            std::cout<< generateText(mcost, director.getTimeCost(), director.getLanes(), director.getSalt(), decodedString, pw)<<std::endl;
+            saveToFile(pw);
         }
     }
     clock_type::time_point checkpt3 = clock_type::now();

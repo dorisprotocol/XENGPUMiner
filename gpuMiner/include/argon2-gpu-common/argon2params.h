@@ -8,16 +8,16 @@
 #endif
 
 #include "argon2-common.h"
-
+#include <string>
 namespace argon2 {
 
 class Argon2Params
 {
 private:
-    const void *salt, *secret, *ad;
+    const void *secret, *ad;
     std::uint32_t outLen, saltLen, secretLen, adLen;
     std::uint32_t t_cost, m_cost, lanes;
-
+    std::string salt;
     std::uint32_t segmentBlocks;
 
     static void digestLong(void *out, std::size_t outLen,
@@ -29,7 +29,7 @@ private:
 public:
     std::uint32_t getOutputLength() const { return outLen; }
 
-    const void *getSalt() const { return salt; }
+    std::string getSalt() const { return salt; }
     std::uint32_t getSaltLength() const { return saltLen; }
 
     const void *getSecret() const { return secret; }
@@ -53,7 +53,7 @@ public:
 
     Argon2Params(
             std::size_t outLen,
-            const void *salt, std::size_t saltLen,
+            std::string salt, std::size_t saltLen,
             const void *secret, std::size_t secretLen,
             const void *ad, std::size_t adLen,
             std::size_t t_cost, std::size_t m_cost, std::size_t lanes);

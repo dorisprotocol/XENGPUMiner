@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC -O3 -DNDEBUG  -shared -Wl,-soname,libargon2-gpu-common.so -o libargon2-gpu-common.so CMakeFiles/argon2-gpu-common.dir/gpuMiner/lib/argon2-gpu-common/argon2params.cpp.o CMakeFiles/argon2-gpu-common.dir/gpuMiner/lib/argon2-gpu-common/blake2b.cpp.o 
