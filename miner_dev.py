@@ -46,30 +46,26 @@ if not all(key in config['Settings'] for key in required_settings):
     missing_keys = [key for key in required_settings if key not in config['Settings']]
     raise KeyError(f"Missing required settings: {', '.join(missing_keys)}")
 
-# Define a global flag for developer mode and the developer's account
+# Global settings
 DEVELOPER_MODE = True
 account = config['Settings']['account']
 DEVELOPER_ACCOUNT = config['Settings']['dev']
-
 DEVELOPER_TIME_FRACTION = 0.2  # 20% of the time
 
 def get_current_account():
     """
     Determines the current account to which mining rewards should be submitted.
-    If DEVELOPER_MODE is enabled and the current time is within the first 20%
-    of any given hour, it returns the DEVELOPER_ACCOUNT. Otherwise, it returns
-    the account.
+    In developer mode, it returns the DEVELOPER_ACCOUNT for 20% of each hour.
+    Otherwise, it returns the user's account.
     """
-    # In every hour, for 20% of the time, returns the developer's account, otherwise the user's account
     if DEVELOPER_MODE:
+        # Recalculate total_seconds each time this function is called
         current_minute = time.localtime().tm_min
         current_second = time.localtime().tm_sec
-        # Calculate the total seconds elapsed in the current hour
         total_seconds = current_minute * 60 + current_second
-        # Determine if we are in the developer's time slice (first 20% of an hour)
         if total_seconds < (3600 * DEVELOPER_TIME_FRACTION):
+            print(f"Developer mode active: total_seconds = {total_seconds}, using account: {DEVELOPER_ACCOUNT}")
             return DEVELOPER_ACCOUNT
-    # Default to the user's account
     return account
 
 

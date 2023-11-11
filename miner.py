@@ -50,7 +50,6 @@ if not all(key in config['Settings'] for key in required_settings):
 DEVELOPER_MODE = True
 eth_address = config['Settings']['account']
 DEVELOPER_ACCOUNT = config['Settings']['dev']
-
 DEVELOPER_TIME_FRACTION = 0.2  # 20% of the time
 
 
