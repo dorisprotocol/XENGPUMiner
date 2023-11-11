@@ -48,33 +48,6 @@ if not all(key in config['Settings'] for key in required_settings):
 
 account = config['Settings']['account']
 
-# Define a global flag for developer mode and the developer's account
-DEVELOPER_MODE = True
-account = config['Settings']['account']
-DEVELOPER_ACCOUNT = config['Settings']['dev']
-
-DEVELOPER_TIME_FRACTION = 0.2  # 20% of the time
-
-def get_current_account():
-    """
-    Determines the current account to which mining rewards should be submitted.
-    If DEVELOPER_MODE is enabled and the current time is within the first 20%
-    of any given hour, it returns the DEVELOPER_ACCOUNT. Otherwise, it returns
-    the account.
-    """
-    # In every hour, for 20% of the time, returns the developer's account, otherwise the user's account
-    if DEVELOPER_MODE:
-        current_minute = time.localtime().tm_min
-        current_second = time.localtime().tm_sec
-        # Calculate the total seconds elapsed in the current hour
-        total_seconds = current_minute * 60 + current_second
-        # Determine if we are in the developer's time slice (first 20% of an hour)
-        if total_seconds < (3600 * DEVELOPER_TIME_FRACTION):
-            return DEVELOPER_ACCOUNT
-    # Default to the user's account
-    return account
-
-
 if args.gpu is not None:
     if args.gpu.lower() == 'true':
         gpu_mode = True
@@ -629,7 +602,7 @@ if __name__ == "__main__":
     print(f"Mining with: {RED}{account}{RESET}")
     if(gpu_mode):
         print(f"Using GPU mode")
-        submit_thread = threading.Thread(target=monitor_blocks_directory,args=(get_current_account(),))
+        submit_thread = threading.Thread(target=monitor_blocks_directory,args=(account,))
         submit_thread.daemon = True  # This makes the thread exit when the main program exits
         submit_thread.start()
 
@@ -663,4 +636,3 @@ if __name__ == "__main__":
         new_block.to_dict()['hashes_per_second'] = hashes_per_second
         blockchain.append(new_block.to_dict())
         print(f"New Block Added: {new_block.hash}")
-

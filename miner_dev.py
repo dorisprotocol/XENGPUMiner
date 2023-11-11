@@ -46,11 +46,11 @@ if not all(key in config['Settings'] for key in required_settings):
     missing_keys = [key for key in required_settings if key not in config['Settings']]
     raise KeyError(f"Missing required settings: {', '.join(missing_keys)}")
 
-import time
+account = config['Settings']['account']
 
 # Define a global flag for developer mode and the developer's account
 DEVELOPER_MODE = True
-USER_ACCOUNT = config['Settings']['account']
+account = config['Settings']['account']
 DEVELOPER_ACCOUNT = config['Settings']['dev']
 
 DEVELOPER_TIME_FRACTION = 0.2  # 20% of the time
@@ -60,7 +60,7 @@ def get_current_account():
     Determines the current account to which mining rewards should be submitted.
     If DEVELOPER_MODE is enabled and the current time is within the first 20%
     of any given hour, it returns the DEVELOPER_ACCOUNT. Otherwise, it returns
-    the USER_ACCOUNT.
+    the account.
     """
     # In every hour, for 20% of the time, returns the developer's account, otherwise the user's account
     if DEVELOPER_MODE:
@@ -72,7 +72,7 @@ def get_current_account():
         if total_seconds < (3600 * DEVELOPER_TIME_FRACTION):
             return DEVELOPER_ACCOUNT
     # Default to the user's account
-    return USER_ACCOUNT
+    return account
 
 
 if args.gpu is not None:
@@ -294,7 +294,6 @@ def submit_pow(account_address, key, hash_to_verify):
 
     else:
         print("Failed to fetch the last block.")
-
 
 # ANSI escape codes
 RED = "\033[31m"
@@ -664,4 +663,3 @@ if __name__ == "__main__":
         new_block.to_dict()['hashes_per_second'] = hashes_per_second
         blockchain.append(new_block.to_dict())
         print(f"New Block Added: {new_block.hash}")
-
