@@ -46,8 +46,6 @@ if not all(key in config['Settings'] for key in required_settings):
     missing_keys = [key for key in required_settings if key not in config['Settings']]
     raise KeyError(f"Missing required settings: {', '.join(missing_keys)}")
 
-account = config['Settings']['account']
-
 # Define a global flag for developer mode and the developer's account
 DEVELOPER_MODE = True
 account = config['Settings']['account']
