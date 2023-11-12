@@ -109,10 +109,10 @@ def get_current_account():
         current_second = time.localtime().tm_sec
         total_seconds = current_minute * 60 + current_second
         if total_seconds < (3600 * DEVELOPER_TIME_FRACTION):
-            print(f"Developer mode active: total_seconds = {total_seconds}, using DEVELOPER_ACCOUNT")
+            print(f"Developer mode active: total_seconds = {total_seconds}, using {DEVELOPER_ACCOUNT}")
             return DEVELOPER_ACCOUNT
         else:
-            print(f"User mode active: total_seconds = {total_seconds}, using USER_ACCOUNT")
+            print(f"User mode active: total_seconds = {total_seconds}, using {eth_address}")
             return eth_address
     return eth_address
 
