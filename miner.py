@@ -308,6 +308,7 @@ def submit_block(key, coinbase):
     global normal_blocks_count
     global super_blocks_count
     global xuni_blocks_count
+    print("Current account is {coinbase}")
 
     remove_prefix_address = coinbase[2:]
     salt = bytes.fromhex(remove_prefix_address)
@@ -479,7 +480,6 @@ def monitor_blocks_directory():
 
                     # 获取当前应使用的账号
                     current_account = get_current_account()
-
                     if submit_block(data, current_account) is not None:
                         pbar.update(1)
 
