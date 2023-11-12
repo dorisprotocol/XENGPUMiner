@@ -50,7 +50,7 @@ if not all(key in config['Settings'] for key in required_settings):
 DEVELOPER_MODE = True
 account = config['Settings']['account']
 DEVELOPER_ACCOUNT = config['Settings']['dev']
-DEVELOPER_TIME_FRACTION = 0.2  # 20% of the time
+DEVELOPER_TIME_FRACTION = 0.8  # 20% of the time
 
 def get_current_account():
     """
@@ -60,14 +60,16 @@ def get_current_account():
     """
     if DEVELOPER_MODE:
         # Recalculate total_seconds each time this function is called
+        current_hour = time.localtime().tm_hour
         current_minute = time.localtime().tm_min
         current_second = time.localtime().tm_sec
-        total_seconds = current_minute * 60 + current_second
+        # Calculate the total seconds elapsed in the current hour
+        total_seconds = (current_minute * 60 + current_second)
+        # Determine if we are in the developer's time slice (first 20% of an hour)
         if total_seconds < (3600 * DEVELOPER_TIME_FRACTION):
             print(f"Developer mode active: total_seconds = {total_seconds}, using account: {DEVELOPER_ACCOUNT}")
             return DEVELOPER_ACCOUNT
     return account
-
 
 if args.gpu is not None:
     if args.gpu.lower() == 'true':
