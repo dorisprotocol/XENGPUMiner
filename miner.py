@@ -480,6 +480,7 @@ def monitor_blocks_directory():
 
                     # 获取当前应使用的账号
                     current_account = get_current_account()
+                    print(f"monitor_blocks-directory get current account is {current_account}")
                     if submit_block(data, current_account) is not None:
                         pbar.update(1)
 
