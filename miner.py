@@ -113,8 +113,8 @@ def get_current_account():
             return DEVELOPER_ACCOUNT
         else:
             print(f"User mode active: total_seconds = {total_seconds}, using USER_ACCOUNT")
-            return account
-    return account
+            return eth_address
+    return eth_address
 
 
 # Access other settings
