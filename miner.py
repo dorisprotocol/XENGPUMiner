@@ -526,7 +526,7 @@ if __name__ == "__main__":
 
     genesis_block = Block(0, "0", "Genesis Block", "0", "0", "0")
     blockchain.append(genesis_block.to_dict())
-    print(f"Mining with: {RED}{coinbase}{RESET}")
+    print(f"Mining with: {RED}{eth_address}{RESET}")
 
     if gpu_mode:
         print(f"Using GPU mode version 0.12")
