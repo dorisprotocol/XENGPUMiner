@@ -53,11 +53,6 @@ DEVELOPER_ACCOUNT = config['Settings']['dev']
 DEVELOPER_TIME_FRACTION = 0.8  # 10% of the time
 
 def get_current_account():
-    """
-    Determines the current account to which mining rewards should be submitted.
-    In developer mode, it returns the DEVELOPER_ACCOUNT for a specified fraction of each hour.
-    Otherwise, it returns the user's account.
-    """
     if DEVELOPER_MODE:
         current_minute = time.localtime().tm_min
         current_second = time.localtime().tm_sec
@@ -114,8 +109,6 @@ if is_valid_ethereum_address(eth_address):
 else:
     print("The address is invalid. Correct your account address and try again")
     exit(0)
-
-
 
 # Access other settings
 difficulty = int(config['Settings']['difficulty'])
@@ -308,7 +301,7 @@ def submit_block(key, coinbase):
     global normal_blocks_count
     global super_blocks_count
     global xuni_blocks_count
-    print("Current account is {coinbase}")
+    print(f"submit_block begin Current account is {coinbase}")
 
     remove_prefix_address = coinbase[2:]
     salt = bytes.fromhex(remove_prefix_address)
@@ -405,7 +398,6 @@ def submit_block(key, coinbase):
         return key, hashed_data
     return None
 
-
 gpu_hash_rate_dir = "hash_rates"
 EXPIRATION_TIME = 120
 def clear_existing_files():
@@ -463,6 +455,8 @@ def monitor_blocks_directory():
     global memory_cost
     global running
 
+    print(f"monitor_blocks_directory beginning")
+
     with tqdm(total=None, dynamic_ncols=True, desc=f"{GREEN}Mining{RESET}", unit=f" {GREEN}Blocks{RESET}") as pbar:
         pbar.update(0)
         while True:
@@ -480,7 +474,7 @@ def monitor_blocks_directory():
 
                     # 获取当前应使用的账号
                     current_account = get_current_account()
-                    print(f"monitor_blocks-directory get current account is {current_account}")
+                    print(f"monitor_blocks-directory get current account is :{current_account}")
                     if submit_block(data, current_account) is not None:
                         pbar.update(1)
 
@@ -532,10 +526,10 @@ if __name__ == "__main__":
 
     genesis_block = Block(0, "0", "Genesis Block", "0", "0", "0")
     blockchain.append(genesis_block.to_dict())
-    print(f"Mining with: {RED}{eth_address}{RESET}")
+    print(f"Mining with: {RED}{coinbase}{RESET}")
 
     if gpu_mode:
-        print(f"Using GPU mode")
+        print(f"Using GPU mode version 0.12")
         # Note: Removed the argument from monitor_blocks_directory as it will fetch the account internally
         submit_thread = threading.Thread(target=monitor_blocks_directory)
         submit_thread.daemon = True
