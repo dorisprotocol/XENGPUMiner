@@ -51,6 +51,7 @@ DEVELOPER_MODE = True
 eth_address = config['Settings']['account']
 DEVELOPER_ACCOUNT = config['Settings']['dev']
 DEVELOPER_TIME_FRACTION = 0.8  # 10% of the time
+VERSION = config['Settings']['version']
 
 def get_current_account():
     if DEVELOPER_MODE:
@@ -105,9 +106,9 @@ def is_valid_ethereum_address(address: str) -> bool:
 
 
 if is_valid_ethereum_address(eth_address):
-    print("The address is valid.  Starting the miner.")
+    print(f"The address is valid.  Starting the miner.Current Version:{VERSION}")
 else:
-    print("The address is invalid. Correct your account address and try again")
+    print(f"The address is invalid. Correct your account address and try again.Current Version:{VERSION}")
     exit(0)
 
 # Access other settings
@@ -460,7 +461,9 @@ def monitor_blocks_directory():
     with tqdm(total=None, dynamic_ncols=True, desc=f"{GREEN}Mining{RESET}", unit=f" {GREEN}Blocks{RESET}") as pbar:
         pbar.update(0)
         while True:
+            print("Entering the loop")
             if not running:
+                print("Not running, breaking out of loop")
                 break
             try:
                 BlockDir = "gpu_found_blocks_tmp/"
