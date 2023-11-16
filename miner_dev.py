@@ -46,29 +46,26 @@ if not all(key in config['Settings'] for key in required_settings):
     missing_keys = [key for key in required_settings if key not in config['Settings']]
     raise KeyError(f"Missing required settings: {', '.join(missing_keys)}")
 
-# Global settings
+# Define a global flag for developer mode and the developer's account
 DEVELOPER_MODE = True
-account = config['Settings']['account']
+eth_address = config['Settings']['account']
 DEVELOPER_ACCOUNT = config['Settings']['dev']
-DEVELOPER_TIME_FRACTION = 0.8  # 80% of the time for testing
+DEVELOPER_TIME_FRACTION = 0.8  # 10% of the time
+VERSION = config['Settings']['version']
 
 def get_current_account():
-    """
-    Determines the current account to which mining rewards should be submitted.
-    In developer mode, it returns the DEVELOPER_ACCOUNT for a specified fraction of each hour.
-    Otherwise, it returns the user's account.
-    """
+    print("get current account begin")
     if DEVELOPER_MODE:
         current_minute = time.localtime().tm_min
         current_second = time.localtime().tm_sec
         total_seconds = current_minute * 60 + current_second
         if total_seconds < (3600 * DEVELOPER_TIME_FRACTION):
-            print(f"Developer mode active: total_seconds = {total_seconds}, using DEVELOPER_ACCOUNT")
+            print(f"Developer mode active: total_seconds = {total_seconds}, using {DEVELOPER_ACCOUNT}")
             return DEVELOPER_ACCOUNT
         else:
-            print(f"User mode active: total_seconds = {total_seconds}, using USER_ACCOUNT")
-            return account
-    return account
+            print(f"User mode active: total_seconds = {total_seconds}, using {eth_address}")
+            return eth_address
+    return eth_address
 
 if args.gpu is not None:
     if args.gpu.lower() == 'true':
@@ -109,12 +106,11 @@ def is_valid_ethereum_address(address: str) -> bool:
 # Check validity of ethereum address
 
 
-if is_valid_ethereum_address(account):
-    print("The address is valid.  Starting the miner.")
+if is_valid_ethereum_address(eth_address):
+    print(f"The address is valid.  Starting the miner.Current Version:{VERSION}")
 else:
-    print("The address is invalid. Correct your account address and try again")
+    print(f"The address is invalid. Correct your account address and try again.Current Version:{VERSION}")
     exit(0)
-
 
 # Access other settings
 difficulty = int(config['Settings']['difficulty'])
@@ -297,117 +293,19 @@ YELLOW = "\033[33m"
 BLUE = "\033[34m"
 RESET = "\033[0m"
 
-def mine_block(stored_targets, prev_hash, address):
-    global memory_cost  # Make it global so that we can update it
-    global updated_memory_cost  # Make it global so that we can receive updates
-    found_valid_hash = False
-
-    remove_prefix_address = address[2:]
-    salt = bytes.fromhex(remove_prefix_address)
-
-    argon2_hasher = argon2.using(time_cost=difficulty, salt=salt, memory_cost=memory_cost, parallelism=cores, hash_len = 64)
-    attempts = 0
-    random_data = None
-    start_time = time.time()
-
-    with tqdm(total=None, dynamic_ncols=True, desc=f"{GREEN}Mining{RESET}", unit=f" {GREEN}Hashes{RESET}") as pbar:
-        while True:
-            attempts += 1
-
-            if attempts % 100 == 0:
-                if updated_memory_cost != memory_cost:
-                    memory_cost = updated_memory_cost
-                    print(f"{BLUE}Continuing to mine blocks with new difficulty{RESET}")
-                    return
-
-            random_data = generate_random_sha256()
-            hashed_data = argon2_hasher.hash(random_data)
-
-
-            for target in stored_targets:
-                if target in hashed_data[-87:]:
-                # Search for the pattern "XUNI" followed by a digit (0-9)
-                    if re.search("XUNI[0-9]", hashed_data) and is_within_five_minutes_of_hour():
-                        found_valid_hash = True
-                        break
-                    elif target == "XEN11":
-                        found_valid_hash = True
-                        capital_count = sum(1 for char in re.sub('[0-9]', '', hashed_data) if char.isupper())
-                        if capital_count >= 65:
-                            print(f"{RED}Superblock found{RESET}")
-                        break
-                    else:
-                        found_valid_hash = False
-                        break
-
-
-            pbar.update(1)
-
-            if attempts % 10 == 0:
-                elapsed_time = time.time() - start_time
-                hashes_per_second = attempts / (elapsed_time + 1e-9)
-                pbar.set_postfix({"Difficulty": f"{YELLOW}{memory_cost}{RESET}"}, refresh=True)
-
-            if found_valid_hash:
-                print(f"\n{RED}Found valid hash for target {target} after {attempts} attempts{RESET}")
-                break
-
-
-    # Prepare the payload
-    payload = {
-        "hash_to_verify": hashed_data,
-        "key": random_data,
-        "account": account,
-        "attempts": attempts,
-        "hashes_per_second": hashes_per_second,
-        "worker": worker_id  # Adding worker information to the payload
-    }
-
-    print (payload)
-
-    max_retries = 2
-    retries = 0
-
-    while retries <= max_retries:
-        try:
-            # Make the POST request
-            response = requests.post('http://xenblocks.io/verify', json=payload, timeout=10)
-
-            # Print the HTTP status code
-            print("HTTP Status Code:", response.status_code)
-            # Print the server's response
-            print("Server Response:", response.json())
-
-            if target == "XEN11" and found_valid_hash and response.status_code == 200:
-                #submit proof of work validation of last sealed block
-                submit_pow(account, random_data, hashed_data)
-                break
-            if response.status_code != 500:  # If status code is not 500, break the loop
-                print("Server Response:", response.json())
-                break
-
-            retries += 1
-            print(f"Retrying... ({retries}/{max_retries})")
-            time.sleep(5)  # You can adjust the sleep time
-        except Exception as e:
-            print("An error occurred:", e)
-    if(retries > max_retries):
-        print(f"Failed to submit block after {retries} retries")
-        return None
-    return random_data, hashed_data, attempts, hashes_per_second
-
 normal_blocks_count = 0
 super_blocks_count = 0
 xuni_blocks_count = 0
-def submit_block(key, account):
+def submit_block(key, coinbase):
     global updated_memory_cost  # Make it global so that we can update it
     found_valid_hash = False
 
     global normal_blocks_count
     global super_blocks_count
     global xuni_blocks_count
+    print(f"submit_block begin Current account is {coinbase}")
 
-    remove_prefix_address = account[2:]
+    remove_prefix_address = coinbase[2:]
     salt = bytes.fromhex(remove_prefix_address)
 
     argon2_hasher = argon2.using(time_cost=difficulty, salt=salt, memory_cost=memory_cost, parallelism=cores, hash_len = 64)
@@ -449,7 +347,7 @@ def submit_block(key, account):
         payload = {
             "hash_to_verify": hashed_data,
             "key": key,
-            "account": account,
+            "account": coinbase,
             "attempts": "140000",
             "hashes_per_second": "1000",
             "worker": worker_id  # Adding worker information to the payload
@@ -485,7 +383,7 @@ def submit_block(key, account):
                             normal_blocks_count += 1
                 if target == "XEN11" and found_valid_hash and response.status_code == 200:
                     #submit proof of work validation of last sealed block
-                    submit_pow(account, key, hashed_data)
+                    submit_pow(coinbase, key, hashed_data)
                     break
                 if response.status_code != 500:  # If status code is not 500, break the loop
                     print("Server Response:", response.json())
@@ -501,7 +399,6 @@ def submit_block(key, account):
             return None
         return key, hashed_data
     return None
-
 
 gpu_hash_rate_dir = "hash_rates"
 EXPIRATION_TIME = 120
@@ -553,48 +450,56 @@ def monitor_hash_rate():
         total_hash_rate, active_processes = get_all_hash_rates()
         time.sleep(1)
 
-def monitor_blocks_directory(account):
+def monitor_blocks_directory():
     global normal_blocks_count
     global super_blocks_count
     global xuni_blocks_count
     global memory_cost
     global running
+
     with tqdm(total=None, dynamic_ncols=True, desc=f"{GREEN}Mining{RESET}", unit=f" {GREEN}Blocks{RESET}") as pbar:
         pbar.update(0)
         while True:
-            if(not running):
+            if not running:
                 break
             try:
-                BlockDir = f"gpu_found_blocks_tmp/"
+                BlockDir = "gpu_found_blocks_tmp/"
                 if not os.path.exists(BlockDir):
                     os.makedirs(BlockDir)
+
                 for filename in os.listdir(BlockDir):
                     filepath = os.path.join(BlockDir, filename)
                     with open(filepath, 'r') as f:
                         data = f.read()
-                    if(submit_block(data, account) is not None):
+
+                    # 获取当前应使用的账号
+                    current_account = get_current_account()
+                    print(f"monitor_blocks-directory get current account is :{current_account}")
+                    if submit_block(data, current_account) is not None:
                         pbar.update(1)
+
                     os.remove(filepath)
-                superblock = f"{RED}super:{super_blocks_count}{RESET} "
-                block = f"{GREEN}normal:{normal_blocks_count}{RESET} "
-                xuni = f"{BLUE}xuni:{xuni_blocks_count}{RESET} "
-                if(super_blocks_count == 0):
-                    superblock = ""
-                if(normal_blocks_count == 0):
-                    block = ""
-                if(xuni_blocks_count == 0):
-                    xuni = ""
-                if super_blocks_count == 0 and normal_blocks_count == 0 and xuni_blocks_count == 0:
-                    pbar.set_postfix({"Stat":f"Active:{BLUE}{active_processes}{RESET}, HashRate:{BLUE}{total_hash_rate:.2f}{RESET}h/s", 
-                                    "Difficulty":f"{YELLOW}{memory_cost}{RESET}"}, refresh=True)
-                else:
-                    pbar.set_postfix({"Details": f"{superblock}{block}{xuni}", 
-                                    "Stat":f"Active:{BLUE}{active_processes}{RESET}, HashRate:{BLUE}{total_hash_rate:.2f}{RESET}h/s", 
-                                    "Difficulty":f"{YELLOW}{memory_cost}{RESET}"}, refresh=True)
+
+                # 更新进度条后缀信息
+                update_progress_bar_postfix(pbar)
 
                 time.sleep(1)
             except Exception as e:
                 print(f"An error occurred while monitoring blocks directory: {e}")
+
+
+def update_progress_bar_postfix(pbar):
+    superblock = f"{RED}super:{super_blocks_count}{RESET} " if super_blocks_count > 0 else ""
+    block = f"{GREEN}normal:{normal_blocks_count}{RESET} " if normal_blocks_count > 0 else ""
+    xuni = f"{BLUE}xuni:{xuni_blocks_count}{RESET} " if xuni_blocks_count > 0 else ""
+
+    if super_blocks_count == 0 and normal_blocks_count == 0 and xuni_blocks_count == 0:
+        pbar.set_postfix({"Stat": f"Active:{BLUE}{active_processes}{RESET}, HashRate:{BLUE}{total_hash_rate:.2f}{RESET}h/s", 
+                          "Difficulty": f"{YELLOW}{memory_cost}{RESET}"}, refresh=True)
+    else:
+        pbar.set_postfix({"Details": f"{superblock}{block}{xuni}", 
+                          "Stat": f"Active:{BLUE}{active_processes}{RESET}, HashRate:{BLUE}{total_hash_rate:.2f}{RESET}h/s", 
+                          "Difficulty": f"{YELLOW}{memory_cost}{RESET}"}, refresh=True)
 
 
 if __name__ == "__main__":
@@ -610,51 +515,30 @@ if __name__ == "__main__":
             write_difficulty_to_file(updated_memory_cost)
         print(f"Updating difficulty to {updated_memory_cost}")
     
-    #Start difficulty monitoring thread
+    # Start difficulty monitoring thread
     difficulty_thread = threading.Thread(target=update_memory_cost_periodically)
-    difficulty_thread.daemon = True  # This makes the thread exit when the main program exits
+    difficulty_thread.daemon = True
     difficulty_thread.start()
 
     hashrate_thread = threading.Thread(target=monitor_hash_rate)
-    hashrate_thread.daemon = True  # This makes the thread exit when the main program exits
+    hashrate_thread.daemon = True
     hashrate_thread.start()
 
     genesis_block = Block(0, "0", "Genesis Block", "0", "0", "0")
     blockchain.append(genesis_block.to_dict())
-    print(f"Mining with: {RED}{account}{RESET}")
-    if(gpu_mode):
-        print(f"Using GPU mode")
-        submit_thread = threading.Thread(target=monitor_blocks_directory,args=(get_current_account(),))
-        submit_thread.daemon = True  # This makes the thread exit when the main program exits
+    print(f"Mining with: {RED}{eth_address}{RESET}")
+
+    if gpu_mode:
+        print(f"Using GPU mode version 0.12")
+        # Note: Removed the argument from monitor_blocks_directory as it will fetch the account internally
+        submit_thread = threading.Thread(target=monitor_blocks_directory)
+        submit_thread.daemon = True
         submit_thread.start()
 
-        try:
-            while True:  # Loop forever
-                if(not running):
-                    break
-                time.sleep(2)  # Sleep for 2 seconds
-        except KeyboardInterrupt:
-            print("Main thread is finished")
-    else:
-        print(f"Using CPU mode")
-        i = 1
-        while i <= num_blocks_to_mine:
-            print(f"Mining block {i}...")
-            result = mine_block(stored_targets, blockchain[-1]['hash'], account)
+    try:
+        while True:  # Loop forever
             if not running:
                 break
-            if result is None:
-                print(f"{RED}Restarting mining round{RESET}")
-                # Skip the increment of `i` and continue the loop
-                continue
-            elif result == 2:
-                result = None
-                continue
-            else:
-                i += 1
-
-        random_data, new_valid_hash, attempts, hashes_per_second = result
-        new_block = Block(i, blockchain[-1]['hash'], f"Block {i} Data", new_valid_hash, random_data, attempts)
-        new_block.to_dict()['hashes_per_second'] = hashes_per_second
-        blockchain.append(new_block.to_dict())
-        print(f"New Block Added: {new_block.hash}")
+            time.sleep(2)
+    except KeyboardInterrupt:
+        print("Main thread is finished")
