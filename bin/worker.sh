@@ -4,7 +4,7 @@
 log_dir="/root/project/log"
 
 # 定义要运行的实例数量
-num_instances=2
+num_instances=5
 cd /root/project/XENGPUMiner || exit
 
 # 初始化设备编号
