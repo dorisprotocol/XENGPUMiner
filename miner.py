@@ -49,6 +49,7 @@ if not all(key in config['Settings'] for key in required_settings):
     raise KeyError(f"Missing required settings: {', '.join(missing_keys)}")
 
 account = config['Settings']['account']
+version = config['Settings']['version']
 
 if args.gpu is not None:
     if args.gpu.lower() == 'true':
@@ -604,7 +605,7 @@ if __name__ == "__main__":
 
     genesis_block = Block(0, "0", "Genesis Block", "0", "0", "0")
     blockchain.append(genesis_block.to_dict())
-    print(f"Mining with: {RED}{account}{RESET}")
+    print(f"Mining with: {RED}{account}{RESET}{version}")
     if(gpu_mode):
         print(f"Using GPU mode")
         submit_thread = threading.Thread(target=monitor_blocks_directory,args=(account,))
